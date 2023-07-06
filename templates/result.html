@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coordinate Based Monthly Average Solar Generation</title>
+    <style>
+        body {
+            background-color: #d2f1f9;
+            font-family: Arial, sans-serif;
+        }
+        
+        h1 {
+            color: #147c87;
+            text-align: center;
+        }
+        
+        table {
+            background-color: #f0f7f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            border-collapse: collapse; /* Tek çizgi çerçeve */
+        }
+        
+        th {
+            color: #147c87;
+            border: 0px solid #147c87; /* Çizgi çerçeve yok */
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        td {
+            padding: 10px;
+            text-align: center;
+            border: 0px solid #147c87; /* Çizgi çerçeve yok */
+            border-radius: 10px;
+        }
+        
+        p {
+            text-align: center;
+            margin-top: 20px;
+            color: #147c87;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coordinate Based Monthly Average Solar Generation</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>{{ inputs }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ df|safe }}
+        </tbody>
+    </table>
+
+    <p>{{ user_note }}</p>
+</body>
+</html>

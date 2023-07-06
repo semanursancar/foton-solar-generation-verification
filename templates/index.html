@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>solargenerationverification</title>
+    <style>
+        body {
+            background-color: #d2f1f9;
+            font-family: Arial, sans-serif;
+        }
+        
+        h1 {
+            color: #147c87;
+            text-align: center;
+        }
+        
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            flex-direction: column;
+        }
+        
+        form {
+            background-color: #f0f7f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-top: 0px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #147c87;
+        }
+        
+        input[type="number"] {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #147c87;
+        }
+        
+        input[type="submit"] {
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #147c87;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        
+        input[type="submit"]:hover {
+            background-color: #0d5661;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coordinate Based Monthly Average Solar Generation</h1>
+    <div class="container">
+        <form method="POST" action="/">
+            <label for="num1">Latitude:</label>
+            <input type="number" name="num1" step="any" value="37.019148" required><br><br>
+            
+            <label for="num2">Longitude:</label>
+            <input type="number" name="num2" step="any" value="36.116237" required><br><br>
+            
+            <label for="num3">Installed Power [kW]:</label>
+            <input type="number" name="num3" step="any" value="4999" required><br><br>
+            
+            <input type="submit" value="Get Average Generation" name="submit_btn">
+        </form>
+    </div>
+</body>
+</html>
