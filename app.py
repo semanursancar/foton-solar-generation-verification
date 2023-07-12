@@ -9,7 +9,7 @@ app = Flask(__name__)
 def MonthlyAverageSolarGeneration(lat, lon, peakpower):
 
     # GET isteği yapacağımız URL'yi belirtiyoruz
-    url = 'https://re.jrc.ec.europa.eu/api/PVcalc?lat={}&lon={}&peakpower={}&loss=0&angle=35&outputformat=json'.format(lat, lon, peakpower)
+    url = 'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat={}&lon={}&peakpower={}&loss=0&angle=35&outputformat=json'.format(lat, lon, peakpower)
     
     # GET isteğini gönderiyoruz
     response = requests.get(url)
