@@ -13,18 +13,14 @@
             text-align: center;
         }
         
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-        
         table {
             background-color: #f0f7f9;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            margin-right: 20px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
             border-collapse: collapse; /* Tek çizgi çerçeve */
         }
         
@@ -47,80 +43,21 @@
             margin-top: 20px;
             color: #147c87;
         }
-        
-        .chart-container {
-            width: 80%;
-            margin-top: 20px;
-        }
-        
-        .version {
-            text-align: center;
-            margin-top: 20px;
-            color: #147c87;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
     <h1>Coordinate Based Monthly Average Solar Generation</h1>
-    <div class="container">
-        <table>
-            <thead>
-                <tr>
-                    <th>{{ inputs }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{ df|safe }}
-            </tbody>
-        </table>
-
-        <div class="chart-container">
-            <canvas id="line-chart"></canvas>
-        </div>
-    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>{{ inputs }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ df|safe }}
+        </tbody>
+    </table>
 
     <p>{{ user_note }}</p>
-    <div class="version">
-        Version: 0.0.3
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        var data = {
-            labels: {{ month_labels|tojson }},
-            datasets: [
-                {
-                    label: 'Average Generation [kW]',
-                    data: {{ average_generation_data|tojson }},
-                    fill: false,
-                    borderColor: '#147c87',
-                    tension: 0.1
-                },
-                {
-                    label: 'Max. Generation Capacity [kWh]',
-                    data: {{ max_gen_cap|tojson }},
-                    fill: false,
-                    borderColor: '#ff0000',
-                    tension: 0.1
-                }
-            ]
-        };
-
-        var options = {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        };
-
-        var ctx = document.getElementById('line-chart').getContext('2d');
-        var lineChart = new Chart(ctx, {
-            type: 'line',
-            data: data,
-            options: options
-        });
-    </script>
 </body>
 </html>
