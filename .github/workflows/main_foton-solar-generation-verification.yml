@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'foton-solar-generation-verification'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C2596ABA672944EBB2D77CD4B468F7EB }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CC0D21EF723943328541F872D5B683CB }}
