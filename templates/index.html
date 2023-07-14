@@ -53,6 +53,12 @@
         input[type="submit"]:hover {
             background-color: #0d5661;
         }
+        .version {
+        text-align: center;
+        margin-top: 20px;
+        color: #147c87;
+        font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -70,6 +76,9 @@
             
             <input type="submit" value="Get Average Generation" name="submit_btn">
         </form>
+    </div>
+    <div class="version">
+        Version: {{ version_info }}
     </div>
 </body>
 </html>

@@ -9,7 +9,7 @@ app = Flask(__name__)
 def MonthlyAverageSolarGeneration(lat, lon, peakpower):
 
     # GET isteği yapacağımız URL'yi belirtiyoruz
-    url = 'https://re.jrc.ec.europa.eu/api/PVcalc?lat={}&lon={}&peakpower={}&loss=0&angle=35&outputformat=json'.format(lat, lon, peakpower)
+    url = 'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat={}&lon={}&peakpower={}&loss=0&angle=35&outputformat=json'.format(lat, lon, peakpower)
     
     # GET isteğini gönderiyoruz
     response = requests.get(url)
@@ -50,6 +50,7 @@ def MonthlyAverageSolarGeneration(lat, lon, peakpower):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    version_info = "0.0.2"
     if request.method == 'POST':
         # HTML formundan girilen değerleri alın
         num1 = float(request.form['num1'])
@@ -60,12 +61,14 @@ def index():
         table, user_note = MonthlyAverageSolarGeneration(num1, num2, num3)
 
         plant_data = "Latitude: {} Longitude: {} Installed Power [kW]: {}".format(num1, num2, num3)  
+
+        
         
         # DataFrame'i HTML olarak render eden 'result.html' sayfasına yönlendirin
-        return render_template('result.html', df=table.to_html(index=False), user_note=user_note, inputs = plant_data)
+        return render_template('result.html', df=table.to_html(index=False), user_note=user_note, inputs = plant_data, version_info = version_info)
     
     # İlk defa sayfayı yüklerken veya GET isteği yapıldığında
-    return render_template('index.html')
+    return render_template('index.html', version_info = version_info)
 
 if __name__ == '__main__':
     app.run(debug=True)
