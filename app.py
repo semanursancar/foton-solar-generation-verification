@@ -22,7 +22,7 @@ def MonthlyAverageSolarGeneration(lat, lon, peakpower):
         # İçeriği yazdırıyoruz
         # print(content)
     else:
-        print('İstek başarısız oldu. Hata kodu:', response.stat.us_code)
+        print('İstek başarısız oldu. Hata kodu:', response.status_code)
     
     # Metin verisini JSON formatına dönüştürüyoruz
     data = json.loads(content)
@@ -30,12 +30,24 @@ def MonthlyAverageSolarGeneration(lat, lon, peakpower):
     # 'outputs' ve 'monthly' verilerini alıyoruz
     outputs_monthly = data['outputs']['monthly']['fixed']
     
-    # DataFrame oluşturmak için verileri düzenliyoruz
+    # # DataFrame oluşturmak için verileri düzenliyoruz
+    # df = pd.DataFrame(outputs_monthly)
+
+    # table = df[["month", "E_m", "SD_m"]]
+
+    # table.rename(columns={"month": "Months", "E_m": "Average Generation [kWh]", "SD_m": "Standart Dev."}, inplace=True)
+
+    # # Standart Dev. değerleri toplu olarak alınır
+    # table["Max. Generation Capacity [kWh]"] = table["Standart Dev."] + table["Average Generation [kWh]"]
+
     df = pd.DataFrame(outputs_monthly)
 
-    table = df[["month","E_m", "SD_m"]]
+    table = df[["month", "E_m", "SD_m"]].copy()
 
-    table.rename(columns={"month":"Months", "E_m": "Average Generation [kW]", "SD_m":"Standart Dev."}, inplace=True)
+    table.rename(columns={"month": "Months", "E_m": "Average Generation [kWh]", "SD_m": "Standart Dev."}, inplace=True)
+
+    table["Max. Generation Capacity [kWh]"] = table["Standart Dev."] + table["Average Generation [kWh]"]
+
 
     # years
     year_min = data['inputs']['meteo_data']['year_min']
@@ -43,14 +55,10 @@ def MonthlyAverageSolarGeneration(lat, lon, peakpower):
 
     note = "The data includes the average of {} and {}.".format(year_min, year_max)    
     
-    # DataFrame'i yazdırıyoruz
-    # print(df)
-
     return table, note
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    version_info = "0.0.2"
     if request.method == 'POST':
         # HTML formundan girilen değerleri alın
         num1 = float(request.form['num1'])
@@ -61,14 +69,15 @@ def index():
         table, user_note = MonthlyAverageSolarGeneration(num1, num2, num3)
 
         plant_data = "Latitude: {} Longitude: {} Installed Power [kW]: {}".format(num1, num2, num3)  
-
-        
         
         # DataFrame'i HTML olarak render eden 'result.html' sayfasına yönlendirin
-        return render_template('result.html', df=table.to_html(index=False), user_note=user_note, inputs = plant_data, version_info = version_info)
+        return render_template('result.html', df=table.to_html(index=False), user_note=user_note, inputs=plant_data,
+                               month_labels=table['Months'].to_list(),
+                               average_generation_data=table['Average Generation [kWh]'].to_list(),
+                               max_gen_cap=table['Max. Generation Capacity [kWh]'].to_list())
     
     # İlk defa sayfayı yüklerken veya GET isteği yapıldığında
-    return render_template('index.html', version_info = version_info)
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
