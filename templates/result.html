@@ -67,9 +67,16 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{ inputs }}</th>
+                    <th colspan="20">{{ inputs|safe }}</th>
                 </tr>
             </thead>
+        </table>
+    </div>
+
+    <br> <!-- Boşluk bırakıldı -->
+
+    <div class="container">
+        <table>
             <tbody>
                 {{ df|safe }}
             </tbody>
@@ -82,7 +89,7 @@
 
     <p>{{ user_note }}</p>
     <div class="version">
-        Version: 0.0.3
+        Version: {{version_info}}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
