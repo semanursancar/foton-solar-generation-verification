@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+    <style>
+        body {
+            background-color: #d2f1f9;
+            font-family: Arial, sans-serif;
+        }
+        
+        h1 {
+            color: #147c87;
+            text-align: center;
+        }
+        
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            flex-direction: column;
+        }
+        
+        p {
+            color: #ff0000;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .version {
+            text-align: center;
+            margin-top: 20px;
+            color: #147c87;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Error</h1>
+    <div class="container">
+        <p>{{ error_message }}</p>
+    </div>
+    <div class="version">
+        Version: {{version_info}}
+    </div>
+</body>
+</html>

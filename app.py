@@ -1,150 +1,96 @@
-from flask import Flask, render_template, request
+# Import necessary libraries
+import flask
 import pandas as pd
 import numpy as np
-import requests
-import json
 
+# Import custom modules for data formatting and API connections
+from coordinatebase_maxgenerationrate_table_import import CoorBaseMaxGenerationRateTableImport
+from jrc_api_connection import GETSolarAverageDataFromJRC
+import data_formatting 
+import user_note
 
-app = Flask(__name__)
+# Create a Flask application instance
+app = flask.Flask(__name__)
 
+# Define a function to calculate the monthly average solar generation
 def MonthlyAverageSolarGeneration(lat, lon, peakpower):
+    """
+    Objective:
+    Calculate the monthly average solar generation for the specified latitude, longitude, and peak power.
 
-    # GET isteği yapacağımız URL'yi belirtiyoruz
-    url = 'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat={}&lon={}&peakpower={}&loss=0&angle=35&outputformat=json'.format(lat, lon, peakpower)
-    
-    # GET isteğini gönderiyoruz
-    response = requests.get(url)
-    
-    # Yanıtı kontrol ediyoruz
-    if response.status_code == 200:
-        # Yanıtın içeriğini alıyoruz
-        content = response.text
-    
-        # İçeriği yazdırıyoruz
-        # print(content)
-    else:
-        print('İstek başarısız oldu. Hata kodu:', response.status_code)
-    
-    # Metin verisini JSON formatına dönüştürüyoruz
-    data = json.loads(content)
-    
-    # 'outputs' ve 'monthly' verilerini alıyoruz
-    outputs_monthly = data['outputs']['monthly']['fixed']
-    
-    # # DataFrame oluşturmak için verileri düzenliyoruz
-    # df = pd.DataFrame(outputs_monthly)
+    Parameters:
+    lat (float): Latitude of the selected coordinate.
+    lon (float): Longitude of the selected coordinate.
+    peakpower (float): Peak power value in kilowatts.
 
-    # table = df[["month", "E_m", "SD_m"]]
+    Returns:
+    table (pandas.DataFrame): DataFrame containing calculated data for each month.
+    note (str): A user note indicating the range of years in the data.
+    """
 
-    # table.rename(columns={"month": "Months", "E_m": "Average Generation [kWh]", "SD_m": "Standart Dev."}, inplace=True)
+    # Get raw solar energy generation data from the JRC API
+    raw_data_json = GETSolarAverageDataFromJRC(lat, lon, peakpower)
 
-    # # Standart Dev. değerleri toplu olarak alınır
-    # table["Max. Generation Capacity [kWh]"] = table["Standart Dev."] + table["Average Generation [kWh]"]
+    # Extract and format monthly average solar generation data
+    ave_gen_table_selected_coor = data_formatting.ExtractMonthlyData(raw_data_json)
 
-    df = pd.DataFrame(outputs_monthly)
+    # Import the table containing base maximum generation rate data for different coordinates
+    max_rate_tb = CoorBaseMaxGenerationRateTableImport()
 
-    table = df[["month", "E_m", "SD_m"]].copy()
+    # Concatenate the average generation data and maximum rate data for the selected coordinate
+    ave_gen_n_max_rate = data_formatting.ConcatJRCnMaxRateAnalysis(max_rate_tb, ave_gen_table_selected_coor, lat, lon)
 
-    table.rename(columns={"month": "Months", "E_m": "Average Generation [kWh]", "SD_m": "Standart Dev."}, inplace=True)
+    # Calculate the maximum generation capacity for each month based on average generation and maximum rate data
+    table = data_formatting.MaxGenerationCapacityCalculation(ave_gen_n_max_rate)
 
+    # Create a user note based on the raw data JSON
+    note = user_note.CreateUserNote(raw_data_json)
 
-        # Verilen veri setini liste olarak tanımla
-    new_data = [
-        [36.0, 36.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [36.0, 35.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [36.0, 32.0, 1.079738, 1.272305, 1.000000, 1.109189, 1.256895, 1.114061, 1.168415, 1.100690, 1.000000, 1.029490, 1.000000, 1.000000],
-        [36.0, 30.0, 1.062797, 1.059252, 1.000000, 1.073221, 1.053622, 1.015656, 1.141753, 1.017770, 1.045553, 1.000000, 1.000000, 1.000000],
-        [37.0, 39.0, 1.120329, 1.134267, 1.025970, 1.332438, 1.409279, 1.580303, 1.663534, 1.517823, 1.329129, 1.114185, 1.000000, 1.000000],
-        [37.0, 36.0, 1.000000, 1.011203, 1.014040, 1.100552, 1.292199, 1.105240, 1.175961, 1.075284, 1.000000, 1.076758, 1.000000, 1.000000],
-        [37.0, 41.0, 1.113407, 1.210646, 1.000000, 1.112900, 1.214771, 1.234040, 1.232824, 1.163799, 1.105406, 1.109276, 1.000000, 1.033537],
-        [37.0, 37.0, 1.051604, 1.179951, 1.000000, 1.142865, 1.212343, 1.151501, 3.875732, 1.128372, 1.073319, 1.026173, 1.000000, 1.000000],
-        [37.0, 33.0, 1.080948, 1.239557, 1.000000, 1.123600, 1.296732, 1.353184, 1.312257, 1.201989, 1.152467, 1.299030, 1.132575, 1.191600],
-        [37.0, 29.0, 1.000000, 1.172563, 1.012653, 1.081247, 1.213121, 1.058334, 1.095996, 1.087105, 1.028172, 1.068836, 1.000000, 1.000000],
-        [37.0, 38.0, 1.224544, 1.259673, 1.067331, 1.226226, 1.318438, 1.266345, 1.325763, 1.562825, 1.415570, 1.518722, 1.093162, 1.105486],
-        [37.0, 32.0, 1.000000, 1.194724, 1.000000, 1.147147, 1.216127, 1.162621, 1.197292, 1.101003, 1.004193, 1.135333, 1.000000, 1.000000],
-        [37.0, 31.0, 1.000000, 1.000000, 1.000000, 1.012296, 1.131248, 1.000000, 1.026194, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [37.0, 30.0, 1.000000, 1.126165, 1.000000, 1.023434, 1.063113, 1.017468, 1.089874, 1.027777, 1.000000, 1.000000, 1.000000, 1.000000],
-        [37.0, 27.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [38.0, 35.0, 1.000000, 1.145168, 1.066972, 1.193201, 1.463042, 1.441761, 1.460206, 1.279327, 1.101257, 1.000000, 1.000000, 1.000000],
-        [38.0, 38.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.173872, 1.000000, 1.099622, 1.000000, 1.000000],
-        [38.0, 27.0, 1.000000, 1.146915, 1.028299, 1.035282, 1.167753, 1.158175, 1.313690, 1.126161, 1.089822, 1.098933, 1.079514, 1.000000],
-        [38.0, 34.0, 1.250317, 1.415093, 1.073917, 1.075493, 1.491115, 1.398345, 1.430596, 1.393338, 1.143182, 1.077851, 1.000000, 1.000000],
-        [38.0, 33.0, 1.092290, 1.257610, 1.027936, 1.484206, 1.826756, 1.854276, 1.999428, 1.585914, 1.350496, 1.073549, 1.405775, 1.000000],
-        [38.0, 29.0, 1.000000, 1.110659, 1.000000, 1.000000, 1.236780, 1.102435, 1.171803, 1.131896, 1.024975, 1.085396, 1.021215, 1.000000],
-        [38.0, 31.0, 1.000000, 1.118068, 1.000000, 1.117610, 1.160252, 1.063259, 1.273370, 1.075608, 1.121340, 1.082580, 1.000000, 1.000000],
-        [38.0, 26.0, 1.000000, 1.000000, 1.025761, 1.031053, 1.201513, 1.130769, 1.163577, 1.039245, 1.041655, 1.044950, 1.000000, 1.000000],
-        [38.0, 32.0, 1.185663, 1.254997, 1.000000, 1.020023, 1.107248, 1.000000, 1.062114, 1.062341, 1.039313, 1.105601, 1.000000, 1.008998],
-        [38.0, 37.0, 1.150349, 1.161013, 1.000000, 1.106674, 1.054715, 1.053464, 1.159985, 1.037217, 1.016780, 1.036315, 1.000000, 1.000000],
-        [38.0, 28.0, 1.000000, 1.156755, 1.001561, 1.000000, 1.250384, 1.164854, 1.210658, 1.174491, 1.111750, 1.153475, 1.081952, 1.000000],
-        [38.0, 42.0, 1.026391, 1.294586, 1.000000, 1.155948, 1.131942, 1.186000, 1.215693, 1.138924, 1.093383, 1.036448, 1.000000, 1.000000],
-        [38.0, 30.0, 1.000000, 1.123666, 1.000000, 1.000000, 1.132897, 1.046610, 1.053852, 1.116560, 1.047494, 1.139338, 1.000000, 1.000000],
-        [38.0, 41.0, 1.000000, 1.178419, 1.000000, 1.000000, 1.056845, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [39.0, 27.0, 1.000000, 1.163035, 1.034551, 1.000000, 1.179607, 1.077918, 1.157047, 1.101999, 1.090232, 1.145058, 1.061362, 1.000000],
-        [39.0, 35.0, 1.038305, 1.447673, 1.022107, 1.000000, 1.205419, 1.076930, 1.115517, 1.064258, 1.000000, 1.099429, 1.037762, 1.000000],
-        [39.0, 29.0, 1.000000, 1.076100, 1.000000, 1.037445, 1.248816, 1.000000, 1.149879, 1.074185, 1.000000, 1.000000, 1.000000, 1.031955],
-        [39.0, 37.0, 1.199967, 1.649627, 1.000000, 1.000000, 1.248896, 1.167992, 1.127325, 1.095302, 1.007188, 1.224626, 1.000000, 1.000000],
-        [39.0, 32.0, 1.027565, 1.000000, 1.067386, 1.084102, 1.179328, 1.059890, 1.163589, 1.080050, 1.037213, 1.000000, 1.000000, 1.000000],
-        [39.0, 30.0, 1.000000, 1.124469, 1.000000, 1.000000, 1.139617, 1.000000, 1.051416, 1.039972, 1.000000, 1.052011, 1.000000, 1.000000],
-        [39.0, 40.0, 1.317722, 2.002698, 1.324351, 1.138039, 1.301911, 1.169643, 1.094712, 1.125843, 1.051804, 1.211427, 1.000000, 1.000000],
-        [39.0, 33.0, 1.000000, 1.081162, 1.017376, 1.081534, 1.188645, 1.062461, 1.078276, 1.008734, 1.000000, 1.008515, 1.000000, 1.000000],
-        [40.0, 41.0, 1.177078, 1.616156, 1.186662, 1.368772, 1.090546, 1.001627, 1.112051, 1.037370, 1.000000, 1.087283, 1.000000, 1.264641],
-        [40.0, 33.0, 1.421830, 1.000000, 1.000000, 1.055804, 1.156967, 1.043440, 1.128917, 1.019135, 1.000000, 1.000000, 1.000000, 1.000000],
-        [40.0, 28.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.226732, 1.075251, 1.180964, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [40.0, 29.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.119301, 1.038706, 1.092258, 1.103155, 1.013944, 1.075666, 1.039625, 1.000000],
-        [40.0, 30.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [40.0, 26.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [41.0, 28.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [41.0, 27.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.045957, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000],
-        [41.0, 34.0, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.000000, 1.208751, 1.182896, 1.202520, 1.195639, 1.274970]
-    ]
-
-    columns = ["lat", "lon", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
-    max_rate_tb = pd.DataFrame(new_data, columns=columns)
-
-    max_rate_coor_base = max_rate_tb[(max_rate_tb['lat'] == np.floor(lat)) & (max_rate_tb['lon'] ==  np.floor(lon))].iloc[0, 2:]
-    max_rate_coor_base.name = 'Coordinate Base Maxmimum Rate'
-    max_rate_coor_base.reset_index(drop=True, inplace=True)
-
-    table = pd.concat([table, max_rate_coor_base], axis=1)
-
-
-    table["Max. Generation Capacity [kWh]"] = (table["Standart Dev."] + table["Average Generation [kWh]"]) * table["Coordinate Base Maxmimum Rate"]
-
-
-    # years
-    year_min = data['inputs']['meteo_data']['year_min']
-    year_max = data['inputs']['meteo_data']['year_max']
-
-    note = "The data includes the average of {} and {}.".format(year_min, year_max)    
-    
     return table, note
 
+# Define a route for the home page (GET method)
+@app.route('/', methods=['GET'])
+def show_form():
+    version_info = "0.0.5"
+    return flask.render_template('index.html', version_info=version_info)
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    version_info = "0.0.4"
-    if request.method == 'POST':
-        # HTML formundan girilen değerleri alın
-        num1 = float(request.form['num1'])
-        num2 = float(request.form['num2'])
-        num3 = float(request.form['num3'])
+# Define a route for processing the form data (POST method)
+@app.route('/', methods=['POST'])
+def process_form():
+    version_info = "0.0.5"
+    try:
+        # Get the latitude, longitude, and peak power values from the HTML form
+        num1 = float(flask.request.form['num1'])
+        num2 = float(flask.request.form['num2'])
+        num3 = float(flask.request.form['num3'])
+
+        # Validate the input values for latitude, longitude, and peak power
+        if not (0 <= num1 <= 90) or not (0 <= num2 <= 180):
+            raise ValueError("Geçersiz koordinat girişi. Latitude (enlem) değerleri 0-90 aralığında, longitude (boylam) değerleri 0-180 aralığında olmalıdır.")
         
-        # Fonksiyonu çağırıp ortalamayı hesaplayın
+        if num3 <= 0:
+            raise ValueError("Geçersiz kurulu güç girişi. Kurulu güç 0'dan büyük olmalıdır.")
+
+        # Calculate the monthly average solar generation using the provided function
         table, user_note = MonthlyAverageSolarGeneration(num1, num2, num3)
 
-        plant_data = "Latitude: {} Longitude: {} Installed Power [kW]: {}".format(num1, num2, num3)  
-        
-
-        # DataFrame'i HTML olarak render eden 'result.html' sayfasına yönlendirin
-        return render_template('result.html', df=table.to_html(index=False), user_note=user_note, inputs=plant_data,
+        # Prepare data and render the 'result.html' template
+        plant_data = "Enlem: {} Boylam: {} Kurulu Güç [kW]: {}".format(num1, num2, num3)
+        return flask.render_template('result.html', df=table.to_html(index=False), user_note=user_note, inputs=plant_data,
                                month_labels=table['Months'].to_list(),
                                average_generation_data=table['Average Generation [kWh]'].to_list(),
                                max_gen_cap=table['Max. Generation Capacity [kWh]'].to_list(),
                                version_info=version_info)
     
-    # İlk defa sayfayı yüklerken veya GET isteği yapıldığında
-    return render_template('index.html', version_info=version_info)
+    except ValueError as ve:
+        # Handle invalid input values with appropriate error message
+        error_message = str(ve)
+        return flask.render_template('error.html', error_message=error_message, version_info=version_info)
+    except Exception as e:
+        # Handle other possible errors with a general error message
+        error_message = "Hata oluştu: {}".format(str(e))
+        return flask.render_template('error.html', error_message=error_message, version_info=version_info)
 
+# Run the Flask application if the script is executed directly
 if __name__ == '__main__':
     app.run(debug=True)
